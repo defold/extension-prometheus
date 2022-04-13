@@ -11,6 +11,7 @@ import java.nio.file.StandardCopyOption;
 
 
 import com.dynamo.bob.Bob;
+import com.dynamo.bob.Platform;
 import com.dynamo.bob.pipeline.LuaBuilderPlugin;
 
 
@@ -62,45 +63,44 @@ public class Prometheus extends LuaBuilderPlugin {
 	private static boolean unpackedSource = false;
 	private static File unpackedRoot = null;
 
+	private File createTempFile() throws IOException {
+		return File.createTempFile("prometheus", "");
+	}
 
-	private static File writeToTempFile(String input) throws IOException {
-		File tempFile = File.createTempFile("luamin", "");
+	private File writeToTempFile(String input) throws IOException {
+		File tempFile = createTempFile();
 		Files.write(tempFile.toPath(), input.getBytes());
 		return tempFile;
 	}
 
-	private static File writeToTempFile(InputStream in) throws IOException {
-		File tempFile = File.createTempFile("luamin", "");
+	private File writeToTempFile(InputStream in) throws IOException {
+		File tempFile = createTempFile();
 		Files.copy(in, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 		return tempFile;
 	}
 
-	private String getMinifierPath() throws IOException {
-		if (minifierPath != null) {
-			return minifierPath;
-		}
-		// InputStream in = getClass().getResourceAsStream("/minify.lua");
-		File out = writeToTempFile(LuaMinifierSource.get());
-		minifierPath = out.getAbsolutePath();
-		return minifierPath;
+	private String readFile(File file) throws IOException {
+		return Files.readString(file.toPath());
 	}
 
+	private String getCliPath() throws IOException {
+		File cli = new File(unpackedRoot, "cli.lua");
+		return cli.toString();
+	}
 
-	private void unpackSource() throws IOException {
+	private void unpackPrometheusSource() throws IOException {
 		if (unpackedSource) {
 			return;
 		}
 
 		unpackedRoot = Files.createTempDirectory(null).toFile();
-		Bob.verbose("unpacked_root " + unpackedRoot);
-		unpackedRoot = new File(".");
 
-		for (String source : PROMETHEUS_SOURCES) {
-			File sourceFile = new File(unpackedRoot, source);
-			Bob.verbose("unpack " + sourceFile);
-			Files.createDirectories(sourceFile.getParentFile().toPath());
-			InputStream in = getClass().getResourceAsStream(source);
-			Files.copy(in, sourceFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		for (String filename : PROMETHEUS_SOURCES) {
+			File destFile = new File(unpackedRoot, filename);
+			destFile.getParentFile().mkdirs();
+			destFile.deleteOnExit();
+			InputStream in = getClass().getResourceAsStream(filename);
+			Files.copy(in, destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 		}
 		unpackedSource = true;
 	}
@@ -108,21 +108,26 @@ public class Prometheus extends LuaBuilderPlugin {
 	@Override
 	public String build(String input) throws Exception {
 		try {
-			Bob.verbose("build");
-			unpackSource();
-
+			Bob.initLua();
+			unpackPrometheusSource();
 
 			File inputFile = writeToTempFile(input);
+			File outputFile = createTempFile();
 
-			// command line arguments to launch lua-minify
+			// command line arguments to launch prometheus
 			List<String> options = new ArrayList<String>();
-			options.add("lua");
-			options.add(getMinifierPath());
-			options.add("minify");
+			options.add(Bob.getExe(Platform.getHostPlatform(), "luajit-64"));
+			options.add(getCliPath().toString());
+			options.add("--preset");
+			options.add("Weak");
+			options.add("--out");
+			options.add(outputFile.getAbsolutePath());
 			options.add(inputFile.getAbsolutePath());
 
 			// launch the process
 			ProcessBuilder pb = new ProcessBuilder(options).redirectErrorStream(true);
+			java.util.Map<String, String> env = pb.environment();
+			env.put("LUA_PATH", Bob.getPath("share/luajit/") + "/?.lua");
 			Process p = pb.start();
 			int ret = p.waitFor();
 
@@ -132,21 +137,15 @@ public class Prometheus extends LuaBuilderPlugin {
 			is.read(output_bytes);
 			is.close();
 
-			// this is either the obfuscated code or the error output
-			String output = new String(output_bytes);
-
-			Bob.verbose(output);
-
-			inputFile.delete();
-
 			if (ret != 0) {
-				System.err.println(output);
-				throw new Exception("Unable to run lua-minify, return code: " + ret);
+				System.err.println(new String(output_bytes));
+				throw new Exception("Unable to run prometheus, return code: " + ret);
 			}
-			return output;
+			return readFile(outputFile);
 		}
 		catch(Exception e) {
-			throw new Exception("Unable to run lua-minify, ", e);
+			e.printStackTrace();
+			throw new Exception("Unable to run prometheus, ", e);
 		}
 	}
 }
