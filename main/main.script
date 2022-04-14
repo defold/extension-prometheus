@@ -1,3 +1,6 @@
+local test = require("main.test")
+
 function init(self)
 	print("hello")
+	test.greet("Bob")
 end
