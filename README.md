@@ -26,3 +26,6 @@ local q={"Bob","main.test","greet","hello"}do local h,Q=1,4 while h<Q do q[h],q[
 ## Prometheus source code
 Prometheus source code is packaged into `pluginPrometheusSource.jar` and unpacked using `getResourceAsStream()` to a temporary folder while bob is running.
 
+
+## Bytecode size
+The bytecode size of the minified source will increase by about 20% (this may vary depending on the source data).
