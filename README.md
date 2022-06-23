@@ -1,14 +1,12 @@
 # extension-prometheus
 Lua obfuscation using [Prometheus](https://github.com/levno-710/Prometheus). This extension hooks into the Lua builder plugin system in bob.
 
+NOTE: The plugin only works when bundling a project using the bob.jar command line tools. It does not work when bundling from the editor.
 
 ## Installation
-To use this library in your Defold project, add the following URL to your `game.project` dependencies:
+To use this library in your Defold project you need to [make a fork of this repository](https://github.com/defold/extension-prometheus/fork) and then add the repository archive URL to your `game.project` dependencies. Example (replace `%YOUR_ORG%` with your GitHub user or organisation):
 
-https://github.com/defold/extension-prometheus/archive/master.zip
-
-We recommend using a link to a zip file of a [specific release](https://github.com/defold/extension-prometheus/releases).
-
+https://github.com/%YOUR_ORG%/extension-prometheus/archive/master.zip
 
 ## Prometheus config
 The extension is running Prometheus with the following configuration:
