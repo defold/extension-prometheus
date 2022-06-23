@@ -1,5 +1,5 @@
 # extension-prometheus
-Lua obfuscation using [Prometheus](https://github.com/levno-710/Prometheus). This extension hooks into the Lua builder plugin system in bob.
+Lua obfuscation using [Prometheus](https://github.com/levno-710/Prometheus). This extension hooks into the [Lua builder plugin system in bob](https://github.com/defold/defold/blob/dev/com.dynamo.cr/com.dynamo.cr.bob/src/com/dynamo/bob/pipeline/LuaBuilder.java#L243-L252).
 
 NOTE: The plugin only works when bundling a project using the bob.jar command line tools. It does not work when bundling from the editor.
 
