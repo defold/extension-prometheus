@@ -22,11 +22,5 @@ return {
                 Treshold    = 1;
             },
         },
-        {
-            Name = "WrapInFunction";
-            Settings = {
-
-            }
-        },
     }
 }
