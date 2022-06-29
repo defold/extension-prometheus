@@ -1,8 +1,6 @@
 # extension-prometheus
 Lua obfuscation using [Prometheus](https://github.com/levno-710/Prometheus). This extension hooks into the [Lua builder plugin system in bob](https://github.com/defold/defold/blob/dev/com.dynamo.cr/com.dynamo.cr.bob/src/com/dynamo/bob/pipeline/LuaBuilder.java#L243-L252).
 
-NOTE: The plugin only works when bundling a project using the bob.jar command line tools. It does not work when bundling from the editor.
-
 ## Installation
 To use this library in your Defold project you need to [make a fork of this repository](https://github.com/defold/extension-prometheus/fork) and then add the repository archive URL to your `game.project` dependencies. Example (replace `%YOUR_ORG%` with your GitHub user or organisation):
 
