@@ -25,11 +25,6 @@ public class Prometheus extends LuaBuilderPlugin {
 		"/cli.lua",
 		"/config.lua",
 		"/presets.lua",
-		"/prometheus/compiler_secure/instructionkind.lua",
-		"/prometheus/compiler_secure/ir.lua",
-		"/prometheus/compiler_secure/vmstrings.lua",
-		"/prometheus/compiler_secure/compiler.lua",
-		"/prometheus/compiler_secure/bytecode.lua",
 		"/prometheus/steps.lua",
 		"/prometheus/parser.lua",
 		"/prometheus/randomStrings.lua",
@@ -39,20 +34,25 @@ public class Prometheus extends LuaBuilderPlugin {
 		"/prometheus/scope.lua",
 		"/prometheus/visitast.lua",
 		"/prometheus/unparser.lua",
+		"/prometheus/namegenerators/confuse.lua",
 		"/prometheus/namegenerators/number.lua",
 		"/prometheus/namegenerators/mangled_shuffled.lua",
 		"/prometheus/namegenerators/Il.lua",
 		"/prometheus/namegenerators/mangled.lua",
+		"/prometheus/steps/AddVararg.lua",
+		"/prometheus/steps/AntiTamper.lua",
 		"/prometheus/steps/ProxifyLocals.lua",
 		"/prometheus/steps/ConstantArray.lua",
+		"/prometheus/steps/EncryptStrings.lua",
 		"/prometheus/steps/WrapInFunction.lua",
-		"/prometheus/steps/LocalsToTable.lua",
 		"/prometheus/steps/Vmify.lua",
 		"/prometheus/steps/SplitStrings.lua",
+		"/prometheus/steps/NumbersToExpressions.lua",
 		"/prometheus/tokenizer.lua",
 		"/prometheus/pipeline.lua",
 		"/prometheus/namegenerators.lua",
 		"/prometheus/util.lua",
+		"/prometheus/compiler/compiler.lua",
 		"/prometheus/randomLiterals.lua",
 		"/prometheus/ast.lua",
 	};
@@ -118,8 +118,8 @@ public class Prometheus extends LuaBuilderPlugin {
 			List<String> options = new ArrayList<String>();
 			options.add(Bob.getExe(Platform.getHostPlatform(), "luajit-64"));
 			options.add(getCliPath().toString());
-			options.add("--preset");
-			options.add("Weak");
+			options.add("--config");
+			options.add("prometheus.lua");
 			options.add("--out");
 			options.add(outputFile.getAbsolutePath());
 			options.add(inputFile.getAbsolutePath());
