@@ -106,6 +106,11 @@ public class Prometheus extends LuaBuilderPlugin {
 	}
 
 	@Override
+	public String create(String filePath, String input, String buildVariant) throws Exception {
+		return input;
+	}
+
+	@Override
 	public String build(String input) throws Exception {
 		try {
 			Bob.initLua();
