@@ -1,4 +1,4 @@
-package com.dynamo.bob.pipeline;
+package com.defold.extension.pipeline;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,13 +9,12 @@ import java.util.ArrayList;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
+import com.defold.extension.pipeline.ILuaObfuscator;
 
 import com.dynamo.bob.Bob;
 import com.dynamo.bob.Platform;
-import com.dynamo.bob.pipeline.LuaBuilderPlugin;
 
-
-public class Prometheus extends LuaBuilderPlugin {
+public class Prometheus implements ILuaObfuscator {
 
 	private static final String[] PROMETHEUS_SOURCES = new String[] {
 		"/logger.lua",
@@ -106,12 +105,7 @@ public class Prometheus extends LuaBuilderPlugin {
 	}
 
 	@Override
-	public String create(String filePath, String input, String buildVariant) throws Exception {
-		return input;
-	}
-
-	@Override
-	public String build(String input) throws Exception {
+	public String obfuscate(String input, String path, String buildVariant) throws Exception {
 		try {
 			Bob.initLua();
 			unpackPrometheusSource();
