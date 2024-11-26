@@ -59,10 +59,31 @@ public class Prometheus implements ILuaObfuscator {
 		"/prometheus/ast.lua",
 	};
 
-
-	private boolean hasUnpackedSource = false;
 	private File unpackedRoot = null;
 	private File projectRoot = null;
+	private String luaJITExePath = null;
+
+	public Prometheus() throws java.lang.InstantiationException {
+		try {
+			unpackedRoot = Files.createTempDirectory(null).toFile();
+			logger.info("Unpacking Prometheus to %s", unpackedRoot);
+			for (String filename : PROMETHEUS_SOURCES) {
+				File destFile = new File(unpackedRoot, filename);
+				destFile.getParentFile().mkdirs();
+				destFile.deleteOnExit();
+				InputStream in = getClass().getResourceAsStream(filename);
+				Files.copy(in, destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+				logger.info("Unpacking %s", destFile.toPath());
+			}
+
+			Bob.initLua();
+			final Platform host = Platform.getHostPlatform();
+			luaJITExePath = Bob.getExe(host, host.is64bit() ? "luajit-64" : "luajit-32");
+		}
+		catch (Exception e) {
+			throw new java.lang.InstantiationException(e.getMessage());
+		}
+	}
 
 	private File createTempFile() throws IOException {
 		return File.createTempFile("prometheus", "");
@@ -87,26 +108,6 @@ public class Prometheus implements ILuaObfuscator {
 	private String getCliPath() throws IOException {
 		File cli = new File(unpackedRoot, "cli.lua");
 		return cli.toString();
-	}
-
-	private void unpackPrometheusSource() throws IOException {
-		if (hasUnpackedSource) {
-			return;
-		}
-
-		unpackedRoot = Files.createTempDirectory(null).toFile();
-
-		logger.info("Unpacking Prometheus to " + unpackedRoot);
-
-		for (String filename : PROMETHEUS_SOURCES) {
-			File destFile = new File(unpackedRoot, filename);
-			destFile.getParentFile().mkdirs();
-			destFile.deleteOnExit();
-			InputStream in = getClass().getResourceAsStream(filename);
-			Files.copy(in, destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-			logger.info("Unpacking " + destFile.toPath());
-		}
-		hasUnpackedSource = true;
 	}
 
 	/**
@@ -134,15 +135,10 @@ public class Prometheus implements ILuaObfuscator {
 	@Override
 	public String obfuscate(String input, String path, String buildVariant) throws Exception {
 		try {
-			logger.info("Obfuscating " + path);
-
 			File projectRoot = getProjectRoot(path);
 			if (projectRoot == null) {
 				throw new Exception("Unable to find project root for " + path);
 			}
-
-			Bob.initLua();
-			unpackPrometheusSource();
 
 			File inputFile = writeToTempFile(input);
 			File outputFile = createTempFile();
@@ -150,13 +146,15 @@ public class Prometheus implements ILuaObfuscator {
 
 			// command line arguments to launch prometheus
 			List<String> options = new ArrayList<String>();
-			options.add(Bob.getExe(Platform.getHostPlatform(), "luajit-64"));
+			options.add(luaJITExePath);
 			options.add(getCliPath().toString());
 			options.add("--config");
 			options.add(configFile.getAbsolutePath());
 			options.add("--out");
 			options.add(outputFile.getAbsolutePath());
 			options.add(inputFile.getAbsolutePath());
+
+			logger.info("Obfuscating %s to %s", path, outputFile);
 
 			// launch the process
 			ProcessBuilder pb = new ProcessBuilder(options).redirectErrorStream(true);
