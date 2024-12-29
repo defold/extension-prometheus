@@ -12,8 +12,10 @@ import java.nio.file.StandardCopyOption;
 import com.defold.extension.pipeline.ILuaObfuscator;
 
 import com.dynamo.bob.Bob;
+import com.dynamo.bob.Project;
 import com.dynamo.bob.Platform;
 import com.dynamo.bob.logging.Logger;
+import com.dynamo.bob.fs.DefaultFileSystem;
 
 public class Prometheus implements ILuaObfuscator {
 
@@ -63,6 +65,8 @@ public class Prometheus implements ILuaObfuscator {
 	private File projectRoot = null;
 	private String luaJITExePath = null;
 
+	private boolean disabled = false;
+
 	public Prometheus() throws java.lang.InstantiationException {
 		try {
 			unpackedRoot = Files.createTempDirectory(null).toFile();
@@ -79,6 +83,11 @@ public class Prometheus implements ILuaObfuscator {
 			Bob.initLua();
 			final Platform host = Platform.getHostPlatform();
 			luaJITExePath = Bob.getExe(host, host.is64bit() ? "luajit-64" : "luajit-32");
+
+			Project project = new Project(new DefaultFileSystem());
+			project.loadProjectFile();
+			disabled = project.getProjectProperties().getBooleanValue("prometheus", "disabled", false);
+			logger.info("Prometheus is %s", disabled ? "disabled" : "enabled");
 		}
 		catch (Exception e) {
 			throw new java.lang.InstantiationException(e.getMessage());
@@ -134,6 +143,10 @@ public class Prometheus implements ILuaObfuscator {
 
 	@Override
 	public String obfuscate(String input, String path, String buildVariant) throws Exception {
+		if (disabled) {
+			return input;
+		}
+
 		try {
 			File projectRoot = getProjectRoot(path);
 			if (projectRoot == null) {

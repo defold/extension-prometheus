@@ -9,6 +9,13 @@ https://github.com/%YOUR_ORG%/extension-prometheus/archive/master.zip
 ## Prometheus config
 The extension will look for a [Prometheus configuration](https://levno-710.gitbook.io/prometheus/getting-started/writing-a-custom-config-file) file named `prometheus.lua` in the project root.
 
+Prometheus can be completely disabled by setting the `prometheus.disabled` **game.project** option:
+
+```
+[prometheus]
+disabled = 1
+```
+
 ## Example
 
 ```lua
