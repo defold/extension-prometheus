@@ -80,7 +80,7 @@ public class Prometheus implements ILuaObfuscator {
 				logger.info("Unpacking %s", destFile.toPath());
 			}
 
-			Bob.initLua();
+			Bob.ensureBobInitialized();
 			final Platform host = Platform.getHostPlatform();
 			luaJITExePath = Bob.getExe(host, host.is64bit() ? "luajit-64" : "luajit-32");
 
